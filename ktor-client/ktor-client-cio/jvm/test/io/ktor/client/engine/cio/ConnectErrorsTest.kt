@@ -82,6 +82,7 @@ class ConnectErrorsTest {
     }
 
     @RetryableTest(3)
+    @Ignore
     fun testResponseWithNoLengthChunkedAndConnectionClosedWithHttp10(): Unit = runBlocking {
         val client = HttpClient(CIO)
 

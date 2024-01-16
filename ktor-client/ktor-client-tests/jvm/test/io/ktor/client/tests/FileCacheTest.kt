@@ -99,7 +99,6 @@ class FileCacheTest : ClientLoader() {
     }
 
     @Test
-    @Ignore("Doesn't work in Train due to Coroutines update")
     fun testLongPath() = clientTests {
         config {
             install(HttpCache) {
@@ -114,7 +113,6 @@ class FileCacheTest : ClientLoader() {
     }
 
     @Test
-    @Ignore("Doesn't work in Train due to Coroutines update")
     fun testSkipCacheIfException() = clientTests {
         val file = Files.createTempDirectory("cache-test-public-deleted").toFile()
         val publicStorage = FileStorage(file)

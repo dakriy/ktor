@@ -3,10 +3,8 @@
  */
 
 import org.jetbrains.dokka.gradle.*
-import org.jetbrains.kotlin.buildtools.api.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.targets.js.*
-import org.jetbrains.kotlin.gradle.targets.jvm.tasks.*
 import org.jetbrains.kotlin.konan.target.*
 
 buildscript {
@@ -144,6 +142,9 @@ allprojects {
     if (!skipPublish.contains(project.name)) {
         configurePublication()
     }
+
+    val task = tasks.findByName("jvmTestProcessResources") as? Copy
+    task?.duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 subprojects {
@@ -154,8 +155,6 @@ println("Using Kotlin compiler version: ${org.jetbrains.kotlin.config.KotlinComp
 filterSnapshotTests()
 
 fun configureDokka() {
-    if (COMMON_JVM_ONLY) return
-
     allprojects {
         plugins.apply("org.jetbrains.dokka")
 
@@ -225,8 +224,6 @@ fun KotlinMultiplatformExtension.configureSourceSets() {
                 progressiveMode = true
             }
         }
-
-    if (!COMMON_JVM_ONLY) return
 
     sourceSets {
         findByName("jvmMain")?.kotlin?.srcDirs("jvmAndNix/src")

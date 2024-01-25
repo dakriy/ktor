@@ -11,53 +11,8 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.signing.*
 import java.util.concurrent.locks.*
 
-fun isAvailableForPublication(publication: Publication): Boolean {
-    val name = publication.name
-    if (name == "maven") return true
-
-    var result = false
-    val jvmAndCommon = setOf(
-        "jvm",
-        "androidRelease",
-        "androidDebug",
-        "js",
-        "metadata",
-        "kotlinMultiplatform"
-    )
-    result = result || name in jvmAndCommon
-    result = result || (HOST_NAME == "linux" && (name == "linuxX64" || name == "linuxArm64"))
-    result = result || (HOST_NAME == "windows" && name == "mingwX64")
-    val macPublications = setOf(
-        "iosX64",
-        "iosArm64",
-        "iosSimulatorArm64",
-
-        "watchosX64",
-        "watchosArm32",
-        "watchosArm64",
-        "watchosSimulatorArm64",
-
-        "tvosX64",
-        "tvosArm64",
-        "tvosSimulatorArm64",
-
-        "macosX64",
-        "macosArm64"
-    )
-
-    result = result || (HOST_NAME == "macos" && name in macPublications)
-
-    return result
-}
-
 fun Project.configurePublication() {
-    if (COMMON_JVM_ONLY) return
-
     apply(plugin = "maven-publish")
-
-    tasks.withType<AbstractPublishToMaven>().all {
-        onlyIf { isAvailableForPublication(publication) }
-    }
 
     val publishingUser: String? = System.getenv("PUBLISHING_USER")
     val publishingPassword: String? = System.getenv("PUBLISHING_PASSWORD")
@@ -78,6 +33,7 @@ fun Project.configurePublication() {
         archiveAppendix.set("empty")
     }
 
+    val repoUrl = "$rootProject.buildDir/m2"
     the<PublishingExtension>().apply {
         repositories {
             maven {
@@ -93,15 +49,17 @@ fun Project.configurePublication() {
             }
             maven {
                 name = "testLocal"
-                setUrl("$rootProject.buildDir/m2")
+                setUrl(repoUrl)
             }
         }
+
+        val publicationName = project.name
 
         publications.forEach {
             val publication = it as? MavenPublication ?: return@forEach
             publication.pom.withXml {
                 val root = asNode()
-                root.appendNode("name", project.name)
+                root.appendNode("name", publicationName)
                 root.appendNode(
                     "description",
                     "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort."
